@@ -116,11 +116,35 @@ schema = Schema({
     }]
 })
 
+def load_env_vars(config_data):
+    # Define sections and their environment variable prefixes
+    CREDENTIAL_MAP = {
+        'mqtt': 'MQTT',
+        'http': 'HTTP',
+        'influxdb': 'INFLUXDB'
+    }
+
+    for section, env_prefix in CREDENTIAL_MAP.items():
+        # Check if the section exists in the YAML data
+        if section in config_data and isinstance(config_data[section], dict):
+            section_data = config_data[section]
+            for key in ['username', 'password']:
+                env_key = f"{env_prefix}_{key.upper()}"
+                env_value = os.getenv(env_key)
+                config_value = section_data.get(key)
+
+                # Prioritize config file. If ENV is set AND config value is missing (None) or empty (''), use ENV value.
+                if env_value is not None and (config_value is None or config_value == ''):
+                    section_data[key] = env_value
+                    # You may want to log this for debugging/transparency
+                    print(f"INFO: Overriding '{section}.{key}' with value from ENV '{env_key}'")
+
 
 def load_config(config_file):
     if isinstance(config_file, IOBase):
         config = yaml.safe_load(config_file)
         try:
+            load_env_vars(config)
             config = schema.validate(config)
         except SchemaError as e:
             raise ConfigError(str(e))
