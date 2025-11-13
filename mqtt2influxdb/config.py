@@ -133,8 +133,8 @@ def load_env_vars(config_data):
                 env_value = os.getenv(env_key)
                 config_value = section_data.get(key)
 
-                # Prioritize config file. If ENV is set AND config value is missing (None) or empty (''), use ENV value.
-                if env_value is not None: # and (config_value is None or config_value == ''):
+                # Prioritize ENV.
+                if env_value is not None:
                     if env_value == '':
                         del section_data[key]
                     else:
