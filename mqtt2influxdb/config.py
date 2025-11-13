@@ -134,10 +134,12 @@ def load_env_vars(config_data):
                 config_value = section_data.get(key)
 
                 # Prioritize config file. If ENV is set AND config value is missing (None) or empty (''), use ENV value.
-                if env_value is not None and (config_value is None or config_value == ''):
-                    section_data[key] = env_value
-                    # You may want to log this for debugging/transparency
-                    print(f"INFO: Overriding '{section}.{key}' with value from ENV '{env_key}'")
+                if env_value is not None: # and (config_value is None or config_value == ''):
+                    if env_value == '':
+                        del section_data[key]
+                    else:
+                        section_data[key] = env_value
+                    logging.debug(f"INFO: Overriding '{section}.{key}' with value from ENV '{env_key}'")
 
 
 def load_config(config_file):
